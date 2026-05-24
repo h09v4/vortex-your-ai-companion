@@ -114,10 +114,12 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
           muted
           playsInline
           style={{
-            width: size * 0.7,
-            height: size * 0.7,
-            borderRadius: "50%",
-            objectFit: "cover",
+            width: size,
+            height: size,
+            objectFit: "contain",
+            background: "transparent",
+            border: "none",
+            outline: "none",
             filter:
               "drop-shadow(0 0 30px rgba(255,248,220,0.55)) drop-shadow(0 0 80px rgba(255,248,220,0.35))",
             mixBlendMode: "screen",
