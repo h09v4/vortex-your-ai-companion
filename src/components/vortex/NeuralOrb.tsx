@@ -21,13 +21,23 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
 
     const cx = size / 2;
     const cy = size / 2;
-    const radius = size * 0.32;
+    const orbRadius = size * 0.32;
 
-    type Node = { theta: number; phi: number; speed: number };
-    const nodes: Node[] = Array.from({ length: 60 }, () => ({
-      theta: Math.random() * Math.PI * 2,
-      phi: Math.random() * Math.PI,
-      speed: 0.001 + Math.random() * 0.003,
+    type Particle = {
+      angle: number;
+      radius: number;
+      speed: number;
+      size: number;
+      alpha: number;
+      drift: number;
+    };
+    const particles: Particle[] = Array.from({ length: 80 }, () => ({
+      angle: Math.random() * Math.PI * 2,
+      radius: orbRadius * (1.1 + Math.random() * 0.9),
+      speed: (Math.random() < 0.5 ? -1 : 1) * (0.001 + Math.random() * 0.004),
+      size: 0.5 + Math.random() * 1.8,
+      alpha: 0.2 + Math.random() * 0.6,
+      drift: Math.random() * Math.PI * 2,
     }));
 
     let raf = 0;
@@ -37,68 +47,43 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
       t += 1;
       ctx.clearRect(0, 0, size, size);
 
-      // outer glow
-      const grad = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, radius * 1.8);
-      grad.addColorStop(0, "rgba(255, 248, 220, 0.18)");
-      grad.addColorStop(0.5, "rgba(255, 248, 220, 0.04)");
-      grad.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = grad;
+      // outer halo glow behind the orb
+      const halo = ctx.createRadialGradient(cx, cy, orbRadius * 0.4, cx, cy, orbRadius * 2.2);
+      halo.addColorStop(0, "rgba(255, 248, 220, 0.28)");
+      halo.addColorStop(0.4, "rgba(255, 248, 220, 0.08)");
+      halo.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = halo;
       ctx.fillRect(0, 0, size, size);
 
-      // core
-      const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      coreGrad.addColorStop(0, "rgba(255, 248, 220, 0.35)");
-      coreGrad.addColorStop(0.6, "rgba(255, 248, 220, 0.06)");
-      coreGrad.addColorStop(1, "rgba(255, 248, 220, 0)");
-      ctx.fillStyle = coreGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      // project nodes to 2D
-      const projected = nodes.map((n) => {
-        n.theta += n.speed;
-        const x = radius * Math.sin(n.phi) * Math.cos(n.theta);
-        const y = radius * Math.sin(n.phi) * Math.sin(n.theta);
-        const z = radius * Math.cos(n.phi);
-        const scale = (z + radius * 1.5) / (radius * 2.5);
-        return { x: cx + x, y: cy + y, z, scale };
-      });
-
-      // connections
-      ctx.lineWidth = 0.5;
-      for (let i = 0; i < projected.length; i++) {
-        for (let j = i + 1; j < projected.length; j++) {
-          const a = projected[i];
-          const b = projected[j];
-          const dx = a.x - b.x;
-          const dy = a.y - b.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 60) {
-            const alpha = (1 - dist / 60) * 0.25 * Math.min(a.scale, b.scale);
-            ctx.strokeStyle = `rgba(255, 248, 220, ${alpha})`;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      // nodes
-      for (const p of projected) {
-        ctx.fillStyle = `rgba(255, 248, 220, ${0.4 + p.scale * 0.6})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.2 + p.scale * 1.8, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // rotating ring
-      ctx.strokeStyle = "rgba(255, 248, 220, 0.15)";
+      // rotating outer rings
+      ctx.strokeStyle = "rgba(255, 248, 220, 0.18)";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(cx, cy, radius * 1.25, t * 0.005, t * 0.005 + Math.PI * 1.5);
+      ctx.arc(cx, cy, orbRadius * 1.35, t * 0.006, t * 0.006 + Math.PI * 1.4);
       ctx.stroke();
+      ctx.strokeStyle = "rgba(255, 248, 220, 0.1)";
+      ctx.beginPath();
+      ctx.arc(cx, cy, orbRadius * 1.55, -t * 0.004, -t * 0.004 + Math.PI * 1.1);
+      ctx.stroke();
+
+      // particles orbiting
+      for (const p of particles) {
+        p.angle += p.speed;
+        p.drift += 0.01;
+        const r = p.radius + Math.sin(p.drift) * 4;
+        const x = cx + Math.cos(p.angle) * r;
+        const y = cy + Math.sin(p.angle) * r;
+        const a = p.alpha * (0.6 + 0.4 * Math.sin(p.drift * 1.3));
+        ctx.fillStyle = `rgba(255, 248, 220, ${a})`;
+        ctx.beginPath();
+        ctx.arc(x, y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        // tiny trail glow
+        ctx.fillStyle = `rgba(255, 248, 220, ${a * 0.15})`;
+        ctx.beginPath();
+        ctx.arc(x, y, p.size * 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       raf = requestAnimationFrame(draw);
     };
@@ -107,10 +92,38 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
   }, [size]);
 
   return (
-    <canvas
-      ref={canvasRef}
+    <div
+      className={`relative ${className}`}
       style={{ width: size, height: size }}
-      className={className}
-    />
+    >
+      {/* particle + glow canvas */}
+      <canvas
+        ref={canvasRef}
+        style={{ width: size, height: size }}
+        className="absolute inset-0 pointer-events-none"
+      />
+      {/* rotating orb video */}
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ animation: "orb-rotate 24s linear infinite" }}
+      >
+        <video
+          src="/orb.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            width: size * 0.7,
+            height: size * 0.7,
+            borderRadius: "50%",
+            objectFit: "cover",
+            filter:
+              "drop-shadow(0 0 30px rgba(255,248,220,0.55)) drop-shadow(0 0 80px rgba(255,248,220,0.35))",
+            mixBlendMode: "screen",
+          }}
+        />
+      </div>
+    </div>
   );
 }
