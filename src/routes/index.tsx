@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { NeuralOrb } from "@/components/vortex/NeuralOrb";
 import { VoiceBar } from "@/components/vortex/VoiceBar";
-import { useVortexUI } from "@/hooks/useVortexUI";
+import { useAuth, getDisplayName } from "@/hooks/useAuth";
 import {
   WeatherWidget, TimeWidget, TasksWidget, HealthWidget, MusicWidget,
   PCHealthWidget, CalendarWidget, NewsWidget, MarketsWidget, FocusWidget,
@@ -10,7 +10,8 @@ import {
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
-  const { userName } = useVortexUI();
+  const { user } = useAuth();
+  const userName = getDisplayName(user).split(" ")[0];
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col items-center text-center mb-8 animate-fade-up">
