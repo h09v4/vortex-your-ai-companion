@@ -108,7 +108,7 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
         style={{ animation: "orb-rotate 24s linear infinite" }}
       >
         <video
-          src="/orb.mp4"
+          src="/orb.webm"
           autoPlay
           loop
           muted
@@ -122,7 +122,6 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
             outline: "none",
             filter:
               "drop-shadow(0 0 30px rgba(255,248,220,0.55)) drop-shadow(0 0 80px rgba(255,248,220,0.35))",
-            mixBlendMode: "screen",
           }}
         />
       </div>
