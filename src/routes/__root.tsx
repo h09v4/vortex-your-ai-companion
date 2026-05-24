@@ -6,6 +6,9 @@ import appCss from "../styles.css?url";
 import { TopNav } from "@/components/vortex/TopNav";
 import { Background } from "@/components/vortex/Background";
 import { VortexUIProvider } from "@/hooks/useVortexUI";
+import { AuthProvider } from "@/hooks/useAuth";
+import { AuthGate } from "@/components/vortex/AuthGate";
+import { useRouterState } from "@tanstack/react-router";
 
 function NotFoundComponent() {
   return (
@@ -68,13 +71,25 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <VortexUIProvider>
-        <Background />
-        <TopNav />
-        <main className="pt-24 pb-12 px-4 min-h-screen">
-          <Outlet />
-        </main>
-      </VortexUIProvider>
+      <AuthProvider>
+        <VortexUIProvider>
+          <Background />
+          <InnerShell />
+        </VortexUIProvider>
+      </AuthProvider>
     </QueryClientProvider>
+  );
+}
+
+function InnerShell() {
+  const { location } = useRouterState();
+  const isLogin = location.pathname === "/login";
+  return (
+    <AuthGate>
+      {!isLogin && <TopNav />}
+      <main className={`${isLogin ? "" : "pt-24"} pb-12 px-4 min-h-screen`}>
+        <Outlet />
+      </main>
+    </AuthGate>
   );
 }
