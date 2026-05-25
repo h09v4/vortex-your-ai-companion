@@ -99,13 +99,20 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
           style={{
             width: size,
             height: size,
-            borderRadius: "50%",
             objectFit: "cover",
-            mixBlendMode: "screen",
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            mixBlendMode: "lighten",
+            WebkitMaskImage:
+              "radial-gradient(circle at center, #000 38%, rgba(0,0,0,0.6) 48%, transparent 58%)",
+            maskImage:
+              "radial-gradient(circle at center, #000 38%, rgba(0,0,0,0.6) 48%, transparent 58%)",
             filter:
-              "drop-shadow(0 0 40px rgba(180,200,235,0.45)) drop-shadow(0 0 90px rgba(160,185,225,0.3))",
+              "contrast(1.15) brightness(1.1) drop-shadow(0 0 40px rgba(180,200,235,0.45)) drop-shadow(0 0 90px rgba(160,185,225,0.3))",
           }}
         />
+
       </div>
     </div>
   );
