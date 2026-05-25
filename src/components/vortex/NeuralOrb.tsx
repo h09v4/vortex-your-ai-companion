@@ -21,7 +21,7 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
 
     const cx = size / 2;
     const cy = size / 2;
-    const orbRadius = size * 0.32;
+    const orbRadius = size * 0.42;
 
     type Particle = {
       angle: number;
@@ -31,12 +31,12 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
       alpha: number;
       drift: number;
     };
-    const particles: Particle[] = Array.from({ length: 80 }, () => ({
+    const particles: Particle[] = Array.from({ length: 110 }, () => ({
       angle: Math.random() * Math.PI * 2,
-      radius: orbRadius * (1.1 + Math.random() * 0.9),
+      radius: orbRadius * (1.05 + Math.random() * 0.8),
       speed: (Math.random() < 0.5 ? -1 : 1) * (0.001 + Math.random() * 0.004),
-      size: 0.5 + Math.random() * 1.8,
-      alpha: 0.2 + Math.random() * 0.6,
+      size: 0.4 + Math.random() * 1.6,
+      alpha: 0.2 + Math.random() * 0.7,
       drift: Math.random() * Math.PI * 2,
     }));
 
@@ -47,39 +47,27 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
       t += 1;
       ctx.clearRect(0, 0, size, size);
 
-      // outer halo glow behind the orb
-      const halo = ctx.createRadialGradient(cx, cy, orbRadius * 0.4, cx, cy, orbRadius * 2.2);
-      halo.addColorStop(0, "rgba(255, 248, 220, 0.28)");
-      halo.addColorStop(0.4, "rgba(255, 248, 220, 0.08)");
+      // soft outer halo (cool white rim glow)
+      const halo = ctx.createRadialGradient(cx, cy, orbRadius * 0.85, cx, cy, orbRadius * 1.8);
+      halo.addColorStop(0, "rgba(200, 215, 235, 0.22)");
+      halo.addColorStop(0.5, "rgba(180, 200, 230, 0.06)");
       halo.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = halo;
       ctx.fillRect(0, 0, size, size);
 
-      // rotating outer rings
-      ctx.strokeStyle = "rgba(255, 248, 220, 0.18)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(cx, cy, orbRadius * 1.35, t * 0.006, t * 0.006 + Math.PI * 1.4);
-      ctx.stroke();
-      ctx.strokeStyle = "rgba(255, 248, 220, 0.1)";
-      ctx.beginPath();
-      ctx.arc(cx, cy, orbRadius * 1.55, -t * 0.004, -t * 0.004 + Math.PI * 1.1);
-      ctx.stroke();
-
-      // particles orbiting
+      // particles / stardust
       for (const p of particles) {
         p.angle += p.speed;
         p.drift += 0.01;
-        const r = p.radius + Math.sin(p.drift) * 4;
+        const r = p.radius + Math.sin(p.drift) * 5;
         const x = cx + Math.cos(p.angle) * r;
         const y = cy + Math.sin(p.angle) * r;
         const a = p.alpha * (0.6 + 0.4 * Math.sin(p.drift * 1.3));
-        ctx.fillStyle = `rgba(255, 248, 220, ${a})`;
+        ctx.fillStyle = `rgba(220, 230, 245, ${a})`;
         ctx.beginPath();
         ctx.arc(x, y, p.size, 0, Math.PI * 2);
         ctx.fill();
-        // tiny trail glow
-        ctx.fillStyle = `rgba(255, 248, 220, ${a * 0.15})`;
+        ctx.fillStyle = `rgba(200, 220, 245, ${a * 0.12})`;
         ctx.beginPath();
         ctx.arc(x, y, p.size * 3, 0, Math.PI * 2);
         ctx.fill();
@@ -96,32 +84,26 @@ export function NeuralOrb({ size = 320, className = "" }: Props) {
       className={`relative ${className}`}
       style={{ width: size, height: size }}
     >
-      {/* particle + glow canvas */}
       <canvas
         ref={canvasRef}
         style={{ width: size, height: size }}
         className="absolute inset-0 pointer-events-none"
       />
-      {/* rotating orb video */}
       <div
         className="absolute inset-0 flex items-center justify-center"
-        style={{ animation: "orb-rotate 24s linear infinite" }}
+        style={{ animation: "orb-rotate 60s linear infinite" }}
       >
-        <video
-          src="/orb.webm"
-          autoPlay
-          loop
-          muted
-          playsInline
+        <img
+          src="/orb.jpg"
+          alt=""
           style={{
             width: size,
             height: size,
-            objectFit: "contain",
-            background: "transparent",
-            border: "none",
-            outline: "none",
+            borderRadius: "50%",
+            objectFit: "cover",
+            mixBlendMode: "screen",
             filter:
-              "drop-shadow(0 0 30px rgba(255,248,220,0.55)) drop-shadow(0 0 80px rgba(255,248,220,0.35))",
+              "drop-shadow(0 0 40px rgba(180,200,235,0.45)) drop-shadow(0 0 90px rgba(160,185,225,0.3))",
           }}
         />
       </div>
